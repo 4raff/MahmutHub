@@ -9,10 +9,10 @@ repeat task.wait() until LocalPlayer and LocalPlayer.Character
 
 print("Checking game support...")
 
-local gameId = game.GameId
+local gameId = game.PlaceId
 
 local supportedGames = {
-    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/sailorpiece.lua",
+    [77747658251236] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/sailorpiece.lua",
 }
 
 if supportedGames[gameId] then 
