@@ -12,7 +12,7 @@ print("Checking game support...")
 local gameId = game.GameId
 
 local supportedGames = {
-    [9186719164] = "https://raw.githubusercontent.com/Andrazx23/molahub/refs/heads/main/SailorPiece.lua",
+    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/sailorpiece.lua",
 }
 
 if supportedGames[gameId] then 
