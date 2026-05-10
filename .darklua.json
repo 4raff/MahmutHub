@@ -1,8 +1,0 @@
-{
-  "generator": "retain_lines",
-  "rules": [
-    "remove_comments",
-    "remove_spaces",
-    "compute_expression"
-  ]
-}
