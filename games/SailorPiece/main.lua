@@ -44,6 +44,7 @@ local Options = Mahmut.Options
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local VIM = game:GetService("VirtualInputManager")
+local VirtualUser = game:GetService("VirtualUser")
 local Workspace = game:GetService("Workspace")
 local LocalPlayer = Players.LocalPlayer
 
@@ -3019,6 +3020,10 @@ task.spawn(function()
     while true do
         task.wait(30)
         if farmingActive then
+            pcall(function()
+                VirtualUser:CaptureController()
+                VirtualUser:ClickButton2(Vector2.new(0, 0))
+            end)
             pcall(function()
                 ReplicatedStorage.Remotes.AntiAFKHeartbeat:FireServer()
             end)
