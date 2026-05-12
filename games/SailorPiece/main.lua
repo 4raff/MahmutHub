@@ -1943,9 +1943,6 @@ do
     end
 
 local function combatLoop()
-    -- Reset lastStyle dulu biar equipStyle tidak skip
-    lastStyle = nil
-
     -- Tunggu karakter siap
     local char = LocalPlayer.Character
     if not char then
@@ -2110,8 +2107,8 @@ end
     end
 
     function DungeonController.start()
-        StyleWatchdog.start()
         farmingActive = true
+        StyleWatchdog.start()
         local O = Mahmut.Options
         if O then
             local currentDungeon = O["Select Dungeon"] and O["Select Dungeon"].Value
@@ -2214,9 +2211,9 @@ end
     end
 
     function DungeonController.stop()
+        farmingActive = false
         StyleWatchdog.stop()
         stopCombat()
-        farmingActive = false
         if state.syncConn then
             pcall(function()
                 state.syncConn:Disconnect()
@@ -2292,9 +2289,6 @@ do
     end
 
 local function combatLoop()
-    -- Reset lastStyle dulu biar equipStyle tidak skip
-    lastStyle = nil
-
     -- Tunggu karakter siap
     local char = LocalPlayer.Character
     if not char then
@@ -2459,6 +2453,7 @@ end
     end
 
     function TowerDefenseController.start()
+        farmingActive = true
         StyleWatchdog.start()
         -- Simpan dungeonArg ke state SEBELUM teleport
         -- karena setelah teleport game.PlaceId berubah
@@ -2498,6 +2493,7 @@ end
     end
 
     function TowerDefenseController.stop()
+        farmingActive = false
         StyleWatchdog.stop()
         stopCombat()
         if state.syncConn then
