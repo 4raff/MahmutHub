@@ -53,8 +53,9 @@ local LocalPlayer = Players.LocalPlayer
 -- ============================================================
 local function safeWait(parent, ...)
     local current = parent
+    local names = {...}
     local ok, result = pcall(function()
-        for _, name in ipairs({...}) do
+        for _, name in ipairs(names) do
             current = current:WaitForChild(name)
         end
         return current
