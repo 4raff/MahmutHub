@@ -715,7 +715,7 @@ do
 
         -- Listen ke tool yang di-equip (ChildAdded)
         toolChangeConn = char.ChildAdded:Connect(function(child)
-            if child:IsA("Tool") and active then
+            if child:IsA("Tool") and active and farmingActive then
                 -- Skip jika masih dalam cooldown (prevent spam)
                 if tick() - lastReequipTime < reequipCooldown then
                     return
@@ -736,7 +736,7 @@ do
 
         -- Listen ke tool yang di-unequip (ChildRemoved)
         toolRemoveConn = char.ChildRemoved:Connect(function(child)
-            if child:IsA("Tool") and active then
+            if child:IsA("Tool") and active and farmingActive then
                 -- Skip jika masih dalam cooldown
                 if tick() - lastReequipTime < reequipCooldown then
                     return
@@ -751,11 +751,11 @@ do
     end
 
     function StyleWatchdog.start()
-        local wasActive = active
-        if not active then
-            active = true
-            print("[StyleWatchdog] started")
+        if active then
+            return
         end
+        active = true
+        print("[StyleWatchdog] started")
 
         local char = LocalPlayer.Character
         if char then
@@ -764,8 +764,7 @@ do
             local styleValue = getExpectedStyle()
             if styleValue and styleValue ~= "Melee" then
                 local tool = getCurrentEquippedTool()
-                if (not wasActive) or (not tool) or tool.Name ~= registeredToolName then
-                    lastReequipTime = 0 -- pastikan equip awal tidak keblok cooldown lama
+                if not tool or tool.Name ~= registeredToolName then
                     forceEquipStyle()
                 end
             elseif styleValue == "Melee" then
@@ -801,7 +800,7 @@ do
         lastStyle = newStyle
         registeredToolName = nil  -- Reset registered tool
         lastReequipTime = 0  -- Reset cooldown saat user ubah manual
-        if active then
+        if farmingActive then
             forceEquipStyle()
         end
     end
@@ -1943,46 +1942,60 @@ do
         return display and DIFFICULTY_MAP[display] or "Easy"
     end
 
-    local function combatLoop()
-        while state.active do
-            local folder = workspace:FindFirstChild("NPCs")
-            if folder then
-                for _, npc in ipairs(folder:GetChildren()) do
-                    if not state.active then
-                        break
-                    end
-                    if npc:IsA("Model") then
-                        local hum = npc:FindFirstChildOfClass("Humanoid")
-                        if hum and hum.Health > 0 then
-                            local ok, npcCF = pcall(function()
-                                return npc:GetPivot()
-                            end)
-                            if ok and NPCProvider.isValidCFrame(npcCF) then
-                                local method, distY = getCombatOptions()
-                                local targetCF = getTargetCFrame(npcCF, method, distY)
-                                local char = LocalPlayer.Character
-                                if char then
-                                    local hrp = char:FindFirstChild("HumanoidRootPart")
-                                    if hrp then
-                                        pcall(function()
-                                            hrp.AssemblyLinearVelocity = Vector3.zero
-                                            hrp.AssemblyAngularVelocity = Vector3.zero
-                                            hrp.CFrame = targetCF
-                                        end)
-                                    end
+    -- Tambah di awal combatLoop (KEDUANYA, Dungeon & Tower)
+local function combatLoop()
+    Combat.equipStyle()  -- ← tambah ini
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if hum then
+        hum.PlatformStand = true  -- ← tambah ini
+    end
+
+    while state.active do
+        local folder = workspace:FindFirstChild("NPCs")
+        if folder then
+            for _, npc in ipairs(folder:GetChildren()) do
+                if not state.active then break end
+                if npc:IsA("Model") then
+                    local hum2 = npc:FindFirstChildOfClass("Humanoid")
+                    if hum2 and hum2.Health > 0 then
+                        local ok, npcCF = pcall(function()
+                            return npc:GetPivot()
+                        end)
+                        if ok and NPCProvider.isValidCFrame(npcCF) then
+                            local method, distY = getCombatOptions()
+                            local targetCF = getTargetCFrame(npcCF, method, distY)
+                            local char2 = LocalPlayer.Character
+                            if char2 then
+                                local hrp = char2:FindFirstChild("HumanoidRootPart")
+                                if hrp then
+                                    pcall(function()
+                                        hrp.AssemblyLinearVelocity = Vector3.zero
+                                        hrp.AssemblyAngularVelocity = Vector3.zero
+                                        hrp.CFrame = targetCF
+                                    end)
                                 end
                             end
-                            pcall(function()
-                                RequestHit:FireServer(npc)
-                            end)
-                            Combat.useSkill(true)
                         end
+                        pcall(function()
+                            RequestHit:FireServer(npc)
+                        end)
+                        Combat.useSkill(true)
                     end
                 end
             end
-            task.wait(0.05)
         end
+        task.wait(0.05)
     end
+
+    -- Cleanup PlatformStand saat loop selesai
+    local charEnd = LocalPlayer.Character
+    local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
+    if humEnd then
+        humEnd.PlatformStand = false  -- ← tambah ini
+    end
+end
 
     local function stopCombat()
         state.active = false
@@ -2260,46 +2273,60 @@ do
         end
     end
 
-    local function combatLoop()
-        while state.active do
-            local folder = workspace:FindFirstChild("NPCs")
-            if folder then
-                for _, npc in ipairs(folder:GetChildren()) do
-                    if not state.active then
-                        break
-                    end
-                    if npc:IsA("Model") then
-                        local hum = npc:FindFirstChildOfClass("Humanoid")
-                        if hum and hum.Health > 0 then
-                            local ok, npcCF = pcall(function()
-                                return npc:GetPivot()
-                            end)
-                            if ok and NPCProvider.isValidCFrame(npcCF) then
-                                local method, distY = getCombatOptions()
-                                local targetCF = getTargetCFrame(npcCF, method, distY)
-                                local char = LocalPlayer.Character
-                                if char then
-                                    local hrp = char:FindFirstChild("HumanoidRootPart")
-                                    if hrp then
-                                        pcall(function()
-                                            hrp.AssemblyLinearVelocity = Vector3.zero
-                                            hrp.AssemblyAngularVelocity = Vector3.zero
-                                            hrp.CFrame = targetCF
-                                        end)
-                                    end
+    -- Tambah di awal combatLoop (KEDUANYA, Dungeon & Tower)
+local function combatLoop()
+    Combat.equipStyle()  -- ← tambah ini
+
+    local char = LocalPlayer.Character
+    local hum = char and char:FindFirstChild("Humanoid")
+    if hum then
+        hum.PlatformStand = true  -- ← tambah ini
+    end
+
+    while state.active do
+        local folder = workspace:FindFirstChild("NPCs")
+        if folder then
+            for _, npc in ipairs(folder:GetChildren()) do
+                if not state.active then break end
+                if npc:IsA("Model") then
+                    local hum2 = npc:FindFirstChildOfClass("Humanoid")
+                    if hum2 and hum2.Health > 0 then
+                        local ok, npcCF = pcall(function()
+                            return npc:GetPivot()
+                        end)
+                        if ok and NPCProvider.isValidCFrame(npcCF) then
+                            local method, distY = getCombatOptions()
+                            local targetCF = getTargetCFrame(npcCF, method, distY)
+                            local char2 = LocalPlayer.Character
+                            if char2 then
+                                local hrp = char2:FindFirstChild("HumanoidRootPart")
+                                if hrp then
+                                    pcall(function()
+                                        hrp.AssemblyLinearVelocity = Vector3.zero
+                                        hrp.AssemblyAngularVelocity = Vector3.zero
+                                        hrp.CFrame = targetCF
+                                    end)
                                 end
                             end
-                            pcall(function()
-                                RequestHit:FireServer(npc)
-                            end)
-                            Combat.useSkill(true)
                         end
+                        pcall(function()
+                            RequestHit:FireServer(npc)
+                        end)
+                        Combat.useSkill(true)
                     end
                 end
             end
-            task.wait(0.05)
         end
+        task.wait(0.05)
     end
+
+    -- Cleanup PlatformStand saat loop selesai
+    local charEnd = LocalPlayer.Character
+    local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
+    if humEnd then
+        humEnd.PlatformStand = false  -- ← tambah ini
+    end
+end
 
     local function stopCombat()
         state.active = false
