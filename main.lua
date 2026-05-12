@@ -16,7 +16,7 @@ end
 local gameId = game.GameId
 
 local supportedGames = {
-    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/SailorPiece/mainV2.lua",
+    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/SailorPiece/production/main.lua",
 }
 
 if supportedGames[gameId] then 
