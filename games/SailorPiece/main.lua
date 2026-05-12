@@ -623,12 +623,12 @@ end
 local StyleWatchdog = {}
 
 do
-    local registeredToolName = nil  -- Nama tool yang di-register saat equip
+    local registeredToolName = nil -- Nama tool yang di-register saat equip
     local toolChangeConn = nil
     local toolRemoveConn = nil
     local active = false
-    local lastReequipTime = 0  -- Debounce: cegah re-equip spam
-    local reequipCooldown = 1  -- 1 detik cooldown antar re-equip
+    local lastReequipTime = 0 -- Debounce: cegah re-equip spam
+    local reequipCooldown = 1 -- 1 detik cooldown antar re-equip
 
     local function getCurrentEquippedTool()
         local char = LocalPlayer.Character
@@ -790,7 +790,7 @@ do
             toolRemoveConn = nil
         end
         registeredToolName = nil
-        lastReequipTime = 0  -- Reset cooldown saat stop
+        lastReequipTime = 0 -- Reset cooldown saat stop
     end
 
     function StyleWatchdog.onStyleChanged(newStyle)
@@ -798,8 +798,8 @@ do
             return
         end
         lastStyle = newStyle
-        registeredToolName = nil  -- Reset registered tool
-        lastReequipTime = 0  -- Reset cooldown saat user ubah manual
+        registeredToolName = nil -- Reset registered tool
+        lastReequipTime = 0 -- Reset cooldown saat user ubah manual
         if farmingActive then
             forceEquipStyle()
         end
@@ -1942,73 +1942,77 @@ do
         return display and DIFFICULTY_MAP[display] or "Easy"
     end
 
-local function combatLoop()
-    -- Tunggu karakter siap
-    local char = LocalPlayer.Character
-    if not char then
-        char = LocalPlayer.CharacterAdded:Wait()
-    end
-    local hrp = char:WaitForChild("HumanoidRootPart", 5)
-    local hum = char:WaitForChild("Humanoid", 5)
+    local function combatLoop()
+        -- Tunggu karakter siap
+        local char = LocalPlayer.Character
+        if not char then
+            char = LocalPlayer.CharacterAdded:Wait()
+        end
+        local hrp = char:WaitForChild("HumanoidRootPart", 5)
+        local hum = char:WaitForChild("Humanoid", 5)
 
-    task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
+        task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
 
-    -- Equip style
-    Combat.equipStyle()
+        -- Equip style
+        Combat.equipStyle()
 
-    if hum then
-        hum.PlatformStand = true
-    end
-
-    while state.active do
-        -- cek style berubah saat farming dungeon berjalan
-        local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
-        if styleValue and styleValue ~= lastStyle then
-            Combat.equipStyle()
+        if hum then
+            hum.PlatformStand = true
         end
 
-        local folder = workspace:FindFirstChild("NPCs")
-        if folder then
-            for _, npc in ipairs(folder:GetChildren()) do
-                if not state.active then break end
-                if npc:IsA("Model") then
-                    local humNPC = npc:FindFirstChildOfClass("Humanoid")
-                    if humNPC and humNPC.Health > 0 then
-                        local ok, npcCF = pcall(function()
-                            return npc:GetPivot()
-                        end)
-                        if ok and NPCProvider.isValidCFrame(npcCF) then
-                            local method, distY = getCombatOptions()
-                            local targetCF = getTargetCFrame(npcCF, method, distY)
-                            local char2 = LocalPlayer.Character
-                            if char2 then
-                                local hrp2 = char2:FindFirstChild("HumanoidRootPart")
-                                if hrp2 then
-                                    pcall(function()
-                                        hrp2.AssemblyLinearVelocity = Vector3.zero
-                                        hrp2.AssemblyAngularVelocity = Vector3.zero
-                                        hrp2.CFrame = targetCF
-                                    end)
+        while state.active do
+            -- cek style berubah saat farming dungeon berjalan
+            local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
+
+            if styleValue and (styleValue ~= lastStyle or not isToolEquipped()) then
+                lastStyle = nil
+                Combat.equipStyle()
+            end
+
+            local folder = workspace:FindFirstChild("NPCs")
+            if folder then
+                for _, npc in ipairs(folder:GetChildren()) do
+                    if not state.active then
+                        break
+                    end
+                    if npc:IsA("Model") then
+                        local humNPC = npc:FindFirstChildOfClass("Humanoid")
+                        if humNPC and humNPC.Health > 0 then
+                            local ok, npcCF = pcall(function()
+                                return npc:GetPivot()
+                            end)
+                            if ok and NPCProvider.isValidCFrame(npcCF) then
+                                local method, distY = getCombatOptions()
+                                local targetCF = getTargetCFrame(npcCF, method, distY)
+                                local char2 = LocalPlayer.Character
+                                if char2 then
+                                    local hrp2 = char2:FindFirstChild("HumanoidRootPart")
+                                    if hrp2 then
+                                        pcall(function()
+                                            hrp2.AssemblyLinearVelocity = Vector3.zero
+                                            hrp2.AssemblyAngularVelocity = Vector3.zero
+                                            hrp2.CFrame = targetCF
+                                        end)
+                                    end
                                 end
                             end
+                            pcall(function()
+                                RequestHit:FireServer(npc)
+                            end)
+                            Combat.useSkill(true)
                         end
-                        pcall(function()
-                            RequestHit:FireServer(npc)
-                        end)
-                        Combat.useSkill(true)
                     end
                 end
             end
+            task.wait(0.05)
         end
-        task.wait(0.05)
-    end
 
-    local charEnd = LocalPlayer.Character
-    local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
-    if humEnd then
-        humEnd.PlatformStand = false
+        local charEnd = LocalPlayer.Character
+        local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
+        if humEnd then
+            humEnd.PlatformStand = false
+        end
     end
-end
 
     local function stopCombat()
         state.active = false
@@ -2288,73 +2292,77 @@ do
         end
     end
 
-local function combatLoop()
-    -- Tunggu karakter siap
-    local char = LocalPlayer.Character
-    if not char then
-        char = LocalPlayer.CharacterAdded:Wait()
-    end
-    local hrp = char:WaitForChild("HumanoidRootPart", 5)
-    local hum = char:WaitForChild("Humanoid", 5)
+    local function combatLoop()
+        -- Tunggu karakter siap
+        local char = LocalPlayer.Character
+        if not char then
+            char = LocalPlayer.CharacterAdded:Wait()
+        end
+        local hrp = char:WaitForChild("HumanoidRootPart", 5)
+        local hum = char:WaitForChild("Humanoid", 5)
 
-    task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
+        task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
 
-    -- Equip style
-    Combat.equipStyle()
+        -- Equip style
+        Combat.equipStyle()
 
-    if hum then
-        hum.PlatformStand = true
-    end
-
-    while state.active do
-        -- cek style berubah saat farming dungeon berjalan
-        local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
-        if styleValue and styleValue ~= lastStyle then
-            Combat.equipStyle()
+        if hum then
+            hum.PlatformStand = true
         end
 
-        local folder = workspace:FindFirstChild("NPCs")
-        if folder then
-            for _, npc in ipairs(folder:GetChildren()) do
-                if not state.active then break end
-                if npc:IsA("Model") then
-                    local humNPC = npc:FindFirstChildOfClass("Humanoid")
-                    if humNPC and humNPC.Health > 0 then
-                        local ok, npcCF = pcall(function()
-                            return npc:GetPivot()
-                        end)
-                        if ok and NPCProvider.isValidCFrame(npcCF) then
-                            local method, distY = getCombatOptions()
-                            local targetCF = getTargetCFrame(npcCF, method, distY)
-                            local char2 = LocalPlayer.Character
-                            if char2 then
-                                local hrp2 = char2:FindFirstChild("HumanoidRootPart")
-                                if hrp2 then
-                                    pcall(function()
-                                        hrp2.AssemblyLinearVelocity = Vector3.zero
-                                        hrp2.AssemblyAngularVelocity = Vector3.zero
-                                        hrp2.CFrame = targetCF
-                                    end)
+        while state.active do
+            -- cek style berubah saat farming dungeon berjalan
+            local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
+
+            if styleValue and (styleValue ~= lastStyle or not isToolEquipped()) then
+                lastStyle = nil
+                Combat.equipStyle()
+            end
+
+            local folder = workspace:FindFirstChild("NPCs")
+            if folder then
+                for _, npc in ipairs(folder:GetChildren()) do
+                    if not state.active then
+                        break
+                    end
+                    if npc:IsA("Model") then
+                        local humNPC = npc:FindFirstChildOfClass("Humanoid")
+                        if humNPC and humNPC.Health > 0 then
+                            local ok, npcCF = pcall(function()
+                                return npc:GetPivot()
+                            end)
+                            if ok and NPCProvider.isValidCFrame(npcCF) then
+                                local method, distY = getCombatOptions()
+                                local targetCF = getTargetCFrame(npcCF, method, distY)
+                                local char2 = LocalPlayer.Character
+                                if char2 then
+                                    local hrp2 = char2:FindFirstChild("HumanoidRootPart")
+                                    if hrp2 then
+                                        pcall(function()
+                                            hrp2.AssemblyLinearVelocity = Vector3.zero
+                                            hrp2.AssemblyAngularVelocity = Vector3.zero
+                                            hrp2.CFrame = targetCF
+                                        end)
+                                    end
                                 end
                             end
+                            pcall(function()
+                                RequestHit:FireServer(npc)
+                            end)
+                            Combat.useSkill(true)
                         end
-                        pcall(function()
-                            RequestHit:FireServer(npc)
-                        end)
-                        Combat.useSkill(true)
                     end
                 end
             end
+            task.wait(0.05)
         end
-        task.wait(0.05)
-    end
 
-    local charEnd = LocalPlayer.Character
-    local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
-    if humEnd then
-        humEnd.PlatformStand = false
+        local charEnd = LocalPlayer.Character
+        local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
+        if humEnd then
+            humEnd.PlatformStand = false
+        end
     end
-end
 
     local function stopCombat()
         state.active = false
@@ -2554,7 +2562,7 @@ do
         Multi = false,
         Default = nil,
         Callback = function(v)
-            lastStyle = nil  -- reset dulu biar forceEquip jalan
+            lastStyle = nil -- reset dulu biar forceEquip jalan
             StyleWatchdog.onStyleChanged(v)
             -- update langsung kalau farming aktif
             if farmingActive then
@@ -2584,7 +2592,9 @@ do
                 -- matikan bossOnly kalau autoAll dinyalakan
                 SkillState.bossOnly = false
                 local t = Mahmut.Options["Use Skill Only Boss"]
-                if t then t:SetValue(false) end
+                if t then
+                    t:SetValue(false)
+                end
             end
             SkillState.rotIdx = 1
         end
@@ -2599,7 +2609,9 @@ do
                 -- matikan autoAll kalau bossOnly dinyalakan
                 SkillState.autoAll = false
                 local t = Mahmut.Options["Auto Use Skills For All Mobs"]
-                if t then t:SetValue(false) end
+                if t then
+                    t:SetValue(false)
+                end
             end
             SkillState.rotIdx = 1
         end
@@ -2616,7 +2628,9 @@ do
         Max = 10,
         Rounding = 1,
         Callback = function(val)
-            if syncing then return end
+            if syncing then
+                return
+            end
             syncing = true
             if DFYInput then
                 DFYInput:SetValue(tostring(val))
@@ -2633,7 +2647,9 @@ do
         Finished = true,
         Callback = function(val)
             local n = math.clamp(tonumber(val) or 5, 0, 10)
-            if syncing then return end
+            if syncing then
+                return
+            end
             syncing = true
             DFYSlider:SetValue(n)
             syncing = false
