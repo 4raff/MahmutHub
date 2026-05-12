@@ -1942,6 +1942,14 @@ do
         return display and DIFFICULTY_MAP[display] or "Easy"
     end
 
+    local function isDungeonBoss(npc)
+        local name = npc.Name
+        -- Boss biasanya tidak punya suffix angka, atau namanya match pattern boss
+        local prefix = NPCProvider.getPrefix(name)
+        -- Kalau tidak punya prefix angka = boss (nama tetap tanpa nomor)
+        return prefix == nil
+    end
+
     local function combatLoop()
         -- Tunggu karakter siap
         local char = LocalPlayer.Character
@@ -1996,10 +2004,11 @@ do
                                     end
                                 end
                             end
+                            local isBoss = isDungeonBoss(npc)
                             pcall(function()
                                 RequestHit:FireServer(npc)
                             end)
-                            Combat.useSkill(true)
+                            Combat.useSkill(isBoss) -- ← sekarang ikut config bossOnly/autoAll
                         end
                     end
                 end
@@ -2292,6 +2301,14 @@ do
         end
     end
 
+    local function isTowerDefenseBoss(npc)
+        local name = npc.Name
+        -- Boss biasanya tidak punya suffix angka, atau namanya match pattern boss
+        local prefix = NPCProvider.getPrefix(name)
+        -- Kalau tidak punya prefix angka = boss (nama tetap tanpa nomor)
+        return prefix == nil
+    end
+
     local function combatLoop()
         -- Tunggu karakter siap
         local char = LocalPlayer.Character
@@ -2346,10 +2363,11 @@ do
                                     end
                                 end
                             end
+                            local isBoss = isTowerDefenseBoss(npc)
                             pcall(function()
                                 RequestHit:FireServer(npc)
                             end)
-                            Combat.useSkill(true)
+                            Combat.useSkill(isBoss) -- ← sekarang ikut config bossOnly/autoAll
                         end
                     end
                 end
