@@ -715,7 +715,7 @@ do
 
         -- Listen ke tool yang di-equip (ChildAdded)
         toolChangeConn = char.ChildAdded:Connect(function(child)
-            if child:IsA("Tool") and active and farmingActive then
+            if child:IsA("Tool") and active then
                 -- Skip jika masih dalam cooldown (prevent spam)
                 if tick() - lastReequipTime < reequipCooldown then
                     return
@@ -736,7 +736,7 @@ do
 
         -- Listen ke tool yang di-unequip (ChildRemoved)
         toolRemoveConn = char.ChildRemoved:Connect(function(child)
-            if child:IsA("Tool") and active and farmingActive then
+            if child:IsA("Tool") and active then
                 -- Skip jika masih dalam cooldown
                 if tick() - lastReequipTime < reequipCooldown then
                     return
@@ -751,11 +751,11 @@ do
     end
 
     function StyleWatchdog.start()
-        if active then
-            return
+        local wasActive = active
+        if not active then
+            active = true
+            print("[StyleWatchdog] started")
         end
-        active = true
-        print("[StyleWatchdog] started")
 
         local char = LocalPlayer.Character
         if char then
@@ -764,7 +764,8 @@ do
             local styleValue = getExpectedStyle()
             if styleValue and styleValue ~= "Melee" then
                 local tool = getCurrentEquippedTool()
-                if not tool or tool.Name ~= registeredToolName then
+                if (not wasActive) or (not tool) or tool.Name ~= registeredToolName then
+                    lastReequipTime = 0 -- pastikan equip awal tidak keblok cooldown lama
                     forceEquipStyle()
                 end
             elseif styleValue == "Melee" then
@@ -800,7 +801,7 @@ do
         lastStyle = newStyle
         registeredToolName = nil  -- Reset registered tool
         lastReequipTime = 0  -- Reset cooldown saat user ubah manual
-        if farmingActive then
+        if active then
             forceEquipStyle()
         end
     end
