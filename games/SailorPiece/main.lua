@@ -1942,24 +1942,41 @@ do
         return display and DIFFICULTY_MAP[display] or "Easy"
     end
 
-    -- Tambah di awal combatLoop (KEDUANYA, Dungeon & Tower)
 local function combatLoop()
-    Combat.equipStyle()  -- ← tambah ini
+    -- Reset lastStyle dulu biar equipStyle tidak skip
+    lastStyle = nil
 
+    -- Tunggu karakter siap
     local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
+    if not char then
+        char = LocalPlayer.CharacterAdded:Wait()
+    end
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    local hum = char:WaitForChild("Humanoid", 5)
+
+    task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
+
+    -- Equip style
+    Combat.equipStyle()
+
     if hum then
-        hum.PlatformStand = true  -- ← tambah ini
+        hum.PlatformStand = true
     end
 
     while state.active do
+        -- cek style berubah saat farming dungeon berjalan
+        local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
+        if styleValue and styleValue ~= lastStyle then
+            Combat.equipStyle()
+        end
+
         local folder = workspace:FindFirstChild("NPCs")
         if folder then
             for _, npc in ipairs(folder:GetChildren()) do
                 if not state.active then break end
                 if npc:IsA("Model") then
-                    local hum2 = npc:FindFirstChildOfClass("Humanoid")
-                    if hum2 and hum2.Health > 0 then
+                    local humNPC = npc:FindFirstChildOfClass("Humanoid")
+                    if humNPC and humNPC.Health > 0 then
                         local ok, npcCF = pcall(function()
                             return npc:GetPivot()
                         end)
@@ -1968,12 +1985,12 @@ local function combatLoop()
                             local targetCF = getTargetCFrame(npcCF, method, distY)
                             local char2 = LocalPlayer.Character
                             if char2 then
-                                local hrp = char2:FindFirstChild("HumanoidRootPart")
-                                if hrp then
+                                local hrp2 = char2:FindFirstChild("HumanoidRootPart")
+                                if hrp2 then
                                     pcall(function()
-                                        hrp.AssemblyLinearVelocity = Vector3.zero
-                                        hrp.AssemblyAngularVelocity = Vector3.zero
-                                        hrp.CFrame = targetCF
+                                        hrp2.AssemblyLinearVelocity = Vector3.zero
+                                        hrp2.AssemblyAngularVelocity = Vector3.zero
+                                        hrp2.CFrame = targetCF
                                     end)
                                 end
                             end
@@ -1989,11 +2006,10 @@ local function combatLoop()
         task.wait(0.05)
     end
 
-    -- Cleanup PlatformStand saat loop selesai
     local charEnd = LocalPlayer.Character
     local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
     if humEnd then
-        humEnd.PlatformStand = false  -- ← tambah ini
+        humEnd.PlatformStand = false
     end
 end
 
@@ -2095,6 +2111,7 @@ end
 
     function DungeonController.start()
         StyleWatchdog.start()
+        farmingActive = true
         local O = Mahmut.Options
         if O then
             local currentDungeon = O["Select Dungeon"] and O["Select Dungeon"].Value
@@ -2199,6 +2216,7 @@ end
     function DungeonController.stop()
         StyleWatchdog.stop()
         stopCombat()
+        farmingActive = false
         if state.syncConn then
             pcall(function()
                 state.syncConn:Disconnect()
@@ -2273,24 +2291,41 @@ do
         end
     end
 
-    -- Tambah di awal combatLoop (KEDUANYA, Dungeon & Tower)
 local function combatLoop()
-    Combat.equipStyle()  -- ← tambah ini
+    -- Reset lastStyle dulu biar equipStyle tidak skip
+    lastStyle = nil
 
+    -- Tunggu karakter siap
     local char = LocalPlayer.Character
-    local hum = char and char:FindFirstChild("Humanoid")
+    if not char then
+        char = LocalPlayer.CharacterAdded:Wait()
+    end
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    local hum = char:WaitForChild("Humanoid", 5)
+
+    task.wait(0.5) -- beri waktu karakter fully loaded di dungeon
+
+    -- Equip style
+    Combat.equipStyle()
+
     if hum then
-        hum.PlatformStand = true  -- ← tambah ini
+        hum.PlatformStand = true
     end
 
     while state.active do
+        -- cek style berubah saat farming dungeon berjalan
+        local styleValue = Mahmut.Options and Mahmut.Options["Style"] and Mahmut.Options["Style"].Value
+        if styleValue and styleValue ~= lastStyle then
+            Combat.equipStyle()
+        end
+
         local folder = workspace:FindFirstChild("NPCs")
         if folder then
             for _, npc in ipairs(folder:GetChildren()) do
                 if not state.active then break end
                 if npc:IsA("Model") then
-                    local hum2 = npc:FindFirstChildOfClass("Humanoid")
-                    if hum2 and hum2.Health > 0 then
+                    local humNPC = npc:FindFirstChildOfClass("Humanoid")
+                    if humNPC and humNPC.Health > 0 then
                         local ok, npcCF = pcall(function()
                             return npc:GetPivot()
                         end)
@@ -2299,12 +2334,12 @@ local function combatLoop()
                             local targetCF = getTargetCFrame(npcCF, method, distY)
                             local char2 = LocalPlayer.Character
                             if char2 then
-                                local hrp = char2:FindFirstChild("HumanoidRootPart")
-                                if hrp then
+                                local hrp2 = char2:FindFirstChild("HumanoidRootPart")
+                                if hrp2 then
                                     pcall(function()
-                                        hrp.AssemblyLinearVelocity = Vector3.zero
-                                        hrp.AssemblyAngularVelocity = Vector3.zero
-                                        hrp.CFrame = targetCF
+                                        hrp2.AssemblyLinearVelocity = Vector3.zero
+                                        hrp2.AssemblyAngularVelocity = Vector3.zero
+                                        hrp2.CFrame = targetCF
                                     end)
                                 end
                             end
@@ -2320,16 +2355,16 @@ local function combatLoop()
         task.wait(0.05)
     end
 
-    -- Cleanup PlatformStand saat loop selesai
     local charEnd = LocalPlayer.Character
     local humEnd = charEnd and charEnd:FindFirstChild("Humanoid")
     if humEnd then
-        humEnd.PlatformStand = false  -- ← tambah ini
+        humEnd.PlatformStand = false
     end
 end
 
     local function stopCombat()
         state.active = false
+        farmingActive = false
         if state.combatThread then
             pcall(task.cancel, state.combatThread)
             state.combatThread = nil
@@ -2349,6 +2384,7 @@ end
     local function startCombat()
         stopCombat()
         state.active = true
+        farmingActive = true
         pcall(function()
             Workspace.Gravity = 0
         end)
