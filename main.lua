@@ -5,9 +5,13 @@ end
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-repeat task.wait() until LocalPlayer and LocalPlayer.Character
+repeat task.wait() until LocalPlayer
 
 print("Checking game support...")
+
+if not LocalPlayer.Character then
+    LocalPlayer.CharacterAdded:Wait()
+end
 
 local gameId = game.GameId
 
