@@ -1943,7 +1943,6 @@ do
     end
 
     local function combatLoop()
-        Combat.equipStyle()
         while state.active do
             local folder = workspace:FindFirstChild("NPCs")
             if folder then
@@ -2081,6 +2080,7 @@ do
     end
 
     function DungeonController.start()
+        StyleWatchdog.start()
         local O = Mahmut.Options
         if O then
             local currentDungeon = O["Select Dungeon"] and O["Select Dungeon"].Value
@@ -2183,6 +2183,7 @@ do
     end
 
     function DungeonController.stop()
+        StyleWatchdog.stop()
         stopCombat()
         if state.syncConn then
             pcall(function()
@@ -2239,7 +2240,7 @@ end
 -- INFINITY TOWER / CRYSTAL DEFENSE CONTROLLER
 -- ============================================================
 
-local InfinityTowerController = {}
+local TowerDefenseController = {}
 
 do
     local state = {
@@ -2259,7 +2260,6 @@ do
     end
 
     local function combatLoop()
-        Combat.equipStyle()
         while state.active do
             local folder = workspace:FindFirstChild("NPCs")
             if folder then
@@ -2386,7 +2386,7 @@ do
 
     end
 
-    function InfinityTowerController.isInsideTower()
+    function TowerDefenseController.isInsideTower()
         local ids = {
             [138368689293913] = true,
             [98826438856089] = true
@@ -2394,16 +2394,17 @@ do
         return ids[game.PlaceId] == true
     end
 
-    function InfinityTowerController.start()
+    function TowerDefenseController.start()
+        StyleWatchdog.start()
         -- Simpan dungeonArg ke state SEBELUM teleport
         -- karena setelah teleport game.PlaceId berubah
-        if not InfinityTowerController.isInsideTower() then
+        if not TowerDefenseController.isInsideTower() then
             state.dungeonArg = checkSea()
         end
 
         state.active = true
 
-        if InfinityTowerController.isInsideTower() then
+        if TowerDefenseController.isInsideTower() then
             setupListener()
         else
             if not RequestDungeonPortal then
@@ -2432,7 +2433,8 @@ do
         end
     end
 
-    function InfinityTowerController.stop()
+    function TowerDefenseController.stop()
+        StyleWatchdog.stop()
         stopCombat()
         if state.syncConn then
             pcall(function()
@@ -2443,7 +2445,7 @@ do
     end
 
     -- Dipanggil hanya dari input callback, eksekusi sekali
-    function InfinityTowerController.onFloorChanged(v)
+    function TowerDefenseController.onFloorChanged(v)
         local n = tonumber(v)
         if n and n > 0 then
             if SetAutoTowerReset then
@@ -2456,7 +2458,7 @@ do
         end
     end
 
-    function InfinityTowerController.syncLoadedState()
+    function TowerDefenseController.syncLoadedState()
         task.spawn(function()
             local timeout = tick() + 10
             while tick() < timeout do
@@ -2466,16 +2468,16 @@ do
                     local toggleObj = O["Auto Farm Infinity Tower/Crystal Defense"]
                     if toggleObj ~= nil then
                         if toggleObj.Value == true then
-                            InfinityTowerController.stop()
+                            TowerDefenseController.stop()
                             task.wait(0.3)
-                            InfinityTowerController.start()
+                            TowerDefenseController.start()
                         end
                         return
                     end
                 end
                 task.wait(0.2)
             end
-            warn("[InfinityTowerController] syncLoadedState timeout")
+            warn("[TowerDefenseController] syncLoadedState timeout")
         end)
     end
 end
@@ -2851,7 +2853,7 @@ do
         Placeholder = "e.g. 50",
         Numeric = true,
         Finished = true,
-        Callback = InfinityTowerController.onFloorChanged
+        Callback = TowerDefenseController.onFloorChanged
     })
 
     section2:AddToggle("Auto Farm Infinity Tower/Crystal Defense", {
@@ -2859,9 +2861,9 @@ do
         Default = false,
         Callback = function(v)
             if v then
-                InfinityTowerController.start()
+                TowerDefenseController.start()
             else
-                InfinityTowerController.stop()
+                TowerDefenseController.stop()
             end
         end
     })
