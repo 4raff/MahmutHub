@@ -539,38 +539,38 @@ function Library:create(options)
 		Padding = UDim.new(0, 4)
 	})
 
-	local closeButton = core:object("ImageButton", {
+	local minimizeButton = core:object("ImageButton", {
 		BackgroundTransparency = 1,
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.new(1, -11, 0, 11),
 		Theme = {ImageColor3 = "StrongText"},
-		Image = "http://www.roblox.com/asset/?id=8497487650",
+		Image = "http://www.roblox.com/asset/?id=2739494675",
 		AnchorPoint = Vector2.new(1)
 	})
 
-	closeButton.MouseEnter:connect(function()
-		closeButton:tween{ImageColor3 = Color3.fromRGB(255, 124, 142)}
+	minimizeButton.MouseEnter:connect(function()
+		minimizeButton:tween{ImageColor3 = Color3.fromRGB(100, 200, 255)}
 	end)
 
-	closeButton.MouseLeave:connect(function()
-		closeButton:tween{ImageColor3 = Library.CurrentTheme.StrongText}
+	minimizeButton.MouseLeave:connect(function()
+		minimizeButton:tween{ImageColor3 = Library.CurrentTheme.StrongText}
 	end)
 
-	local function closeUI()
+	local function minimizeUI()
 		core.ClipsDescendants = true
 		core:fade(true)
 		wait(0.1)
 		core:tween({Size = UDim2.new()}, function()
-			gui.AbsoluteObject:Destroy()
+			gui.AbsoluteObject.Visible = false
 		end)
 	end
 
 	if getgenv then
-		getgenv().MercuryUI = closeUI
+		getgenv().MercuryUI = minimizeUI
 	end
 
-	closeButton.MouseButton1Click:connect(function()
-		closeUI()
+	minimizeButton.MouseButton1Click:connect(function()
+		minimizeUI()
 	end)
 
 	local urlBar = core:object("Frame", {
@@ -3014,6 +3014,46 @@ function Library:keybind(options)
 			if not down then
 				keybindContainer:tween{BackgroundColor3 = Library.CurrentTheme.Secondary}
 			end
+		end)
+
+		-- ============================================================
+		-- MOBILE REOPEN BUTTON
+		-- ============================================================
+		local ScreenGui = Instance.new("ScreenGui")
+		ScreenGui.Name = "MahmutMobileBtn"
+		ScreenGui.ResetOnSpawn = false
+		ScreenGui.IgnoreGuiInset = true
+
+		local ok = pcall(function()
+		    ScreenGui.Parent = game:GetService("CoreGui")
+		end)
+		if not ok then
+		    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+		end
+
+		local btn = Instance.new("ImageButton")
+		btn.Size = UDim2.new(0, 45, 0, 45)
+		btn.Position = UDim2.new(0, 10, 0.5, -30)
+		btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+		btn.Image = "rbxassetid://85863777536510"
+		btn.BorderSizePixel = 0
+		btn.Active = true
+		btn.Draggable = true
+		btn.Parent = ScreenGui
+
+		local stroke = Instance.new("UIStroke")
+		stroke.Color = Color3.fromRGB(175, 216, 237)
+		stroke.Thickness = 2
+		stroke.Parent = btn
+
+		-- Click handler to reopen UI
+		btn.MouseButton1Click:Connect(function()
+		    pcall(function()
+		        local guiObject = gui.AbsoluteObject
+		        if guiObject and not guiObject.Visible then
+		            guiObject.Visible = true
+		        end
+		    end)
 		end)
 
 		keybindContainer.MouseButton1Down:connect(function()
