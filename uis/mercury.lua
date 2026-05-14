@@ -561,7 +561,7 @@ function Library:create(options)
 		core:fade(true)
 		wait(0.1)
 		core:tween({Size = UDim2.new()}, function()
-			gui.AbsoluteObject.Visible = false
+			gui.AbsoluteObject.Enabled = false
 		end)
 	end
 
@@ -3050,8 +3050,8 @@ function Library:keybind(options)
 		btn.MouseButton1Click:Connect(function()
 		    pcall(function()
 		        local guiObject = gui.AbsoluteObject
-		        if guiObject and not guiObject.Visible then
-		            guiObject.Visible = true
+		        if guiObject and not guiObject.Enabled then
+		            guiObject.Enabled = true
 		        end
 		    end)
 		end)
