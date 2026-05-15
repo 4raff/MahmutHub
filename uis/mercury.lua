@@ -546,7 +546,7 @@ function Library:create(options)
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.new(1, -11, 0, 11),
 		Theme = {ImageColor3 = "StrongText"},
-		Image = "http://www.roblox.com/asset/?id=85863777536510",
+		Image = "http://www.roblox.com/asset/?id=11255032783",
 		AnchorPoint = Vector2.new(1)
 	})
 
@@ -568,7 +568,7 @@ local reopenBtn = Instance.new("ImageButton")
 reopenBtn.Size = UDim2.new(0, 45, 0, 45)
 reopenBtn.Position = UDim2.new(0, 10, 0.5, -22)
 reopenBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-reopenBtn.Image = "rbxassetid://8569322835"
+reopenBtn.Image = "rbxassetid://85863777536510"
 reopenBtn.BorderSizePixel = 0
 reopenBtn.Active = true
 reopenBtn.Draggable = true
