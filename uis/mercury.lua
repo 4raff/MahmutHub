@@ -546,7 +546,7 @@ function Library:create(options)
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.new(1, -11, 0, 11),
 		Theme = {ImageColor3 = "StrongText"},
-		Image = "http://www.roblox.com/asset/?id=11255032783",
+		Image = "http://www.roblox.com/asset/?id=85863777536510",
 		AnchorPoint = Vector2.new(1)
 	})
 
