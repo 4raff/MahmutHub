@@ -16,8 +16,9 @@ end
 local gameId = game.GameId
 
 local supportedGames = {
-    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/SailorPiece/production/main.lua",
-    [1281592938] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/EntrenchedWW1/development/main.lua",
+    [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/SailorPiece/production/main.luau",
+    [1281592938] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/EntrenchedWW1/production/main.luau",
+    [7633926880] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/BloxStrike/production/main.luau",
 }
 
 if supportedGames[gameId] then 
