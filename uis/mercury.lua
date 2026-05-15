@@ -1320,7 +1320,7 @@ function Library:toggle(options)
 	local off = "http://www.roblox.com/asset/?id=8498691125"
 	local saveKey = options.SaveKey or options.Name
 	local shouldSave = options.Save ~= false and saveKey ~= nil
-	local toggled = settings[saveKey] ~= nil and settings[saveKey] or options.StartingState
+	local toggled = (self.settings and self.settings[saveKey]) ~= nil and (self.settings and self.settings[saveKey]) or options.StartingState
 	local initialValue = toggled
 
 	local onIcon = toggleContainer:object("ImageLabel", {
@@ -1447,7 +1447,7 @@ function Library:dropdown(options)
 	local open = false
 	local saveKey = options.SaveKey or options.Name
 	local shouldSave = options.Save ~= false and saveKey ~= nil
-	local savedSelection = settings[saveKey]
+	local savedSelection = self.settings and self.settings[saveKey]
 
 	local dropdownContainer = self.container:object("TextButton", {
 		Theme = {BackgroundColor3 = "Secondary"},
@@ -3348,7 +3348,7 @@ function Library:slider(options)
 
 	local saveKey = options.SaveKey or options.Name
 	local shouldSave = options.Save ~= false and saveKey ~= nil
-	local savedValue = settings[saveKey]
+	local savedValue = self.settings and self.settings[saveKey]
 	if type(savedValue) ~= "number" then
 		savedValue = options.Default
 	end
