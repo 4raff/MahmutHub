@@ -550,20 +550,60 @@ function Library:create(options)
 		AnchorPoint = Vector2.new(1)
 	})
 
-	minimizeButton.MouseEnter:connect(function()
-		minimizeButton:tween{ImageColor3 = Color3.fromRGB(100, 200, 255)}
-	end)
+	-- ============================================================
+-- REOPEN BUTTON (dibuat di sini agar dalam scope gui & core)
+-- ============================================================
+local reopenScreenGui = Instance.new("ScreenGui")
+reopenScreenGui.Name = "MercuryReopenBtn"
+reopenScreenGui.ResetOnSpawn = false
+reopenScreenGui.IgnoreGuiInset = true
+local _ok = pcall(function()
+    reopenScreenGui.Parent = game:GetService("CoreGui")
+end)
+if not _ok then
+    reopenScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
 
-	minimizeButton.MouseLeave:connect(function()
-		minimizeButton:tween{ImageColor3 = Library.CurrentTheme.StrongText}
-	end)
+local reopenBtn = Instance.new("ImageButton")
+reopenBtn.Size = UDim2.new(0, 45, 0, 45)
+reopenBtn.Position = UDim2.new(0, 10, 0.5, -22)
+reopenBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+reopenBtn.Image = "rbxassetid://8569322835"
+reopenBtn.BorderSizePixel = 0
+reopenBtn.Active = true
+reopenBtn.Draggable = true
+reopenBtn.Visible = false
+reopenBtn.Parent = reopenScreenGui
 
-	local function minimizeUI()
+local _reopenCorner = Instance.new("UICorner")
+_reopenCorner.CornerRadius = UDim.new(0, 8)
+_reopenCorner.Parent = reopenBtn
+
+local _reopenStroke = Instance.new("UIStroke")
+_reopenStroke.Color = Color3.fromRGB(175, 216, 237)
+_reopenStroke.Thickness = 2
+_reopenStroke.Parent = reopenBtn
+
+reopenBtn.MouseButton1Click:Connect(function()
+    reopenBtn.Visible = false
+    gui.AbsoluteObject.Enabled = true
+    core.ClipsDescendants = true
+    core:fade(false, nil, 0.2)
+    core:tween({Size = rawget(core, "oldSize"), Length = 0.25}, function()
+        core.ClipsDescendants = false
+    end)
+end)
+
+-- ============================================================
+-- MINIMIZE
+-- ============================================================
+local function minimizeUI()
     core.ClipsDescendants = true
     core:fade(true)
     wait(0.1)
     core:tween({Size = UDim2.new()}, function()
         gui.AbsoluteObject.Enabled = false
+        reopenBtn.Visible = true
     end)
 end
 
@@ -572,13 +612,17 @@ if getgenv then
     getgenv().MercuryUI = minimizeUI
 end
 
-	if getgenv then
-		getgenv().MercuryUI = minimizeUI
-	end
+minimizeButton.MouseEnter:connect(function()
+    minimizeButton:tween{ImageColor3 = Color3.fromRGB(100, 200, 255)}
+end)
 
-	minimizeButton.MouseButton1Click:connect(function()
-		minimizeUI()
-	end)
+minimizeButton.MouseLeave:connect(function()
+    minimizeButton:tween{ImageColor3 = Library.CurrentTheme.StrongText}
+end)
+
+minimizeButton.MouseButton1Click:connect(function()
+    minimizeUI()
+end)
 
 	local urlBar = core:object("Frame", {
 		Size = UDim2.new(1, -10, 0, 25),
@@ -3021,46 +3065,6 @@ function Library:keybind(options)
 			if not down then
 				keybindContainer:tween{BackgroundColor3 = Library.CurrentTheme.Secondary}
 			end
-		end)
-
-		-- ============================================================
-		-- MOBILE REOPEN BUTTON
-		-- ============================================================
-		local ScreenGui = Instance.new("ScreenGui")
-		ScreenGui.Name = "MahmutMobileBtn"
-		ScreenGui.ResetOnSpawn = false
-		ScreenGui.IgnoreGuiInset = true
-
-		local ok = pcall(function()
-		    ScreenGui.Parent = game:GetService("CoreGui")
-		end)
-		if not ok then
-		    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
-		end
-
-		local btn = Instance.new("ImageButton")
-		btn.Size = UDim2.new(0, 45, 0, 45)
-		btn.Position = UDim2.new(0, 10, 0.5, -30)
-		btn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
-		btn.Image = "rbxassetid://85863777536510"
-		btn.BorderSizePixel = 0
-		btn.Active = true
-		btn.Draggable = true
-		btn.Parent = ScreenGui
-
-		local stroke = Instance.new("UIStroke")
-		stroke.Color = Color3.fromRGB(175, 216, 237)
-		stroke.Thickness = 2
-		stroke.Parent = btn
-
-		-- Click handler to reopen UI
-		btn.MouseButton1Click:Connect(function()
-		    pcall(function()
-		        local guiObject = gui.AbsoluteObject
-		        if guiObject and not guiObject.Enabled then
-		            guiObject.Enabled = true
-		        end
-		    end)
 		end)
 
 		keybindContainer.MouseButton1Down:connect(function()
