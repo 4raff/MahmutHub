@@ -717,7 +717,7 @@ end)
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 5, 0.5, 0),
 		Size = UDim2.new(0, 15, 0, 15),
-		Image = "http://www.roblox.com/asset/?id=8569322835",
+		Image = "http://www.roblox.com/asset/?id=85863777536510",
 		Theme = {ImageColor3 = "StrongText"}
 	})
 
