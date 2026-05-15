@@ -902,6 +902,7 @@ end)
 		homeButton = homeButton,
 		homePage = homePage,
 		nilFolder = core:object("Folder"),
+		settings = settings,
 	}, Library)
 
 	local settingsTab = Library.tab(mt, {
@@ -3059,7 +3060,7 @@ function Library:keybind(options)
 
 	local saveKey = options.SaveKey or options.Name
 	local shouldSave = options.Save ~= false and saveKey ~= nil
-	local savedKeybind = settings[saveKey]
+	local savedKeybind = self.settings and self.settings[saveKey]
 	if type(savedKeybind) == "string" and Enum.KeyCode[savedKeybind] then
 		options.Keybind = Enum.KeyCode[savedKeybind]
 	end
