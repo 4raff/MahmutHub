@@ -146,14 +146,16 @@ function Library:object(class, properties)
 		options.Style = nil 
 		options.Direction = nil
 
-		local tween = TweenService:Create(localObject, ti, options); tween:Play()
-
-		tween.Completed:Connect(function()
-			callback()
-		end)
-
-		return tween
+		local tween = TweenService:Create(localObject, ti, options)
+		if tween then
+    		tween:Play()
+    		tween.Completed:Connect(function()
+        		pcall(callback)
+    		end)
+    	return tween
+		end
 	end
+
 
 	function methods:round(radius)
 		radius = radius or 6
@@ -544,7 +546,7 @@ function Library:create(options)
 		Size = UDim2.fromOffset(14, 14),
 		Position = UDim2.new(1, -11, 0, 11),
 		Theme = {ImageColor3 = "StrongText"},
-		Image = "http://www.roblox.com/asset/?id=2739494675",
+		Image = "http://www.roblox.com/asset/?id=11255032783",
 		AnchorPoint = Vector2.new(1)
 	})
 
@@ -557,13 +559,18 @@ function Library:create(options)
 	end)
 
 	local function minimizeUI()
-		core.ClipsDescendants = true
-		core:fade(true)
-		wait(0.1)
-		core:tween({Size = UDim2.new()}, function()
-			gui.AbsoluteObject.Enabled = false
-		end)
-	end
+    core.ClipsDescendants = true
+    core:fade(true)
+    wait(0.1)
+    core:tween({Size = UDim2.new()}, function()
+        gui.AbsoluteObject.Enabled = false
+    end)
+end
+
+
+if getgenv then
+    getgenv().MercuryUI = minimizeUI
+end
 
 	if getgenv then
 		getgenv().MercuryUI = minimizeUI
