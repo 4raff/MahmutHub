@@ -1290,7 +1290,8 @@ function Library:tab(options)
 		container = tab,
 		Theme = self.Theme,
 		core = self.core,
-		layout = layout
+		layout = layout,
+		settings = self.settings
 	}, Library)
 end
 
