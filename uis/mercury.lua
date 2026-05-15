@@ -394,27 +394,38 @@ end
 
 function Library:create(options)
 
+	options = options or {}
+
 	local settings = {
 		Theme = "Dark"
 	}
 
-	if readfile and writefile and isfile then
-		if not isfile("MercurySettings.json") then
-			writefile("MercurySettings.json", HTTPService:JSONEncode(settings))
+	local settingsPath = options.SettingsPath or "MercurySettings.json"
+	local canPersist = readfile and writefile and isfile
+
+	if canPersist then
+		if not isfile(settingsPath) then
+			writefile(settingsPath, HTTPService:JSONEncode(settings))
 		end
-		settings = HTTPService:JSONDecode(readfile("MercurySettings.json"))
-		Library.CurrentTheme = Library.Themes[settings.Theme]
+		local ok, decoded = pcall(function()
+			return HTTPService:JSONDecode(readfile(settingsPath))
+		end)
+		if ok and type(decoded) == "table" then
+			settings = decoded
+		end
+		Library.CurrentTheme = Library.Themes[settings.Theme] or self.Themes.Dark
 		updateSettings = function(property, value)
 			settings[property] = value
-			writefile("MercurySettings.json", HTTPService:JSONEncode(settings))
+			writefile(settingsPath, HTTPService:JSONEncode(settings))
 		end
 	end
 
 	options = self:set_defaults({
 		Name = "Mercury",
 		Size = UDim2.fromOffset(600, 400),
-		Theme = self.Themes[settings.Theme],
-		Link = "https://github.com/deeeity/mercury-lib"
+		Theme = self.Themes[settings.Theme] or self.Themes.Dark,
+		Link = "https://github.com/deeeity/mercury-lib",
+		SettingsPath = settingsPath
 	}, options)
 
 	if getgenv and getgenv().MercuryUI then
@@ -1306,8 +1317,10 @@ function Library:toggle(options)
 
 	local on = "http://www.roblox.com/asset/?id=8498709213"
 	local off = "http://www.roblox.com/asset/?id=8498691125"
-
-	local toggled = options.StartingState
+	local saveKey = options.SaveKey or options.Name
+	local shouldSave = options.Save ~= false and saveKey ~= nil
+	local toggled = settings[saveKey] ~= nil and settings[saveKey] or options.StartingState
+	local initialValue = toggled
 
 	local onIcon = toggleContainer:object("ImageLabel", {
 		AnchorPoint = Vector2.new(1, .5),
@@ -1358,6 +1371,9 @@ function Library:toggle(options)
 		else
 			onIcon:crossfade(offIcon, 0.1)
 		end
+		if shouldSave then
+			updateSettings(saveKey, toggled)
+		end
 		options.Callback(toggled)
 	end
 
@@ -1406,10 +1422,13 @@ function Library:toggle(options)
 		else
 			onIcon:crossfade(offIcon, 0.1)
 		end
+		if shouldSave then
+			updateSettings(saveKey, toggled)
+		end
 		task.spawn(function() options.Callback(toggled) end)
 	end
 
-	if options.StartingState then methods:SetState(true) end
+	methods:SetState(initialValue)
 
 	return methods
 end
@@ -1425,6 +1444,9 @@ function Library:dropdown(options)
 
 	local newSize = 0
 	local open = false
+	local saveKey = options.SaveKey or options.Name
+	local shouldSave = options.Save ~= false and saveKey ~= nil
+	local savedSelection = settings[saveKey]
 
 	local dropdownContainer = self.container:object("TextButton", {
 		Theme = {BackgroundColor3 = "Secondary"},
@@ -1471,7 +1493,7 @@ function Library:dropdown(options)
 		Position = UDim2.new(1, -50, 0, 16),
 		Size = UDim2.fromOffset(200, 20),
 		TextSize = 14,
-		Text = options.StartingText
+		Text = savedSelection or options.StartingText
 	}):round(5):stroke("Tertiary")
 
 	local itemContainer = dropdownContainer:object("Frame", {
@@ -1490,6 +1512,22 @@ function Library:dropdown(options)
 		HorizontalAlignment = Enum.HorizontalAlignment.Left,
 		VerticalAlignment = Enum.VerticalAlignment.Top
 	})
+
+	local function applySelection(textValue, skipCallback)
+		selectedText.Text = textValue
+		selectedText:tween{Size = UDim2.fromOffset(selectedText.TextBounds.X + 20, 20), Length = 0.05}
+		if shouldSave then
+			updateSettings(saveKey, textValue)
+		end
+		if not skipCallback then
+			for _, item in next, items do
+				if item[1][1] == textValue then
+					options.Callback(item[1][2])
+					break
+				end
+			end
+		end
+	end
 
 	local layout = self.layout
 	local container = self.container
@@ -1510,6 +1548,15 @@ function Library:dropdown(options)
 			items[i] = v
 		else
 			items[i] = {tostring(v), v}
+		end
+	end
+
+	if savedSelection then
+		for _, item in next, items do
+			if item[1][1] == savedSelection then
+				applySelection(savedSelection)
+				break
+			end
 		end
 	end
 
@@ -1558,9 +1605,7 @@ function Library:dropdown(options)
 
 			newItem.MouseButton1Click:connect(function()
 				toggle()
-				selectedText.Text = newItem.Text
-				selectedText:tween{Size = UDim2.fromOffset(selectedText.TextBounds.X + 20, 20), Length = 0.05}
-				options.Callback(value)
+				applySelection(newItem.Text)
 			end)
 		end
 	end
@@ -1621,8 +1666,7 @@ function Library:dropdown(options)
 	local methods = {}
 
 	function methods:Set(text)
-		selectedText.Text = text
-		selectedText:tween{Size = UDim2.fromOffset(selectedText.TextBounds.X + 20, 20), Length = 0.05}
+		applySelection(text, true)
 	end
 
 	function methods:RemoveItems(fitems)
@@ -3013,6 +3057,13 @@ function Library:keybind(options)
 		Size = UDim2.new(1, -20, 0, 52)
 	}):round(7)
 
+	local saveKey = options.SaveKey or options.Name
+	local shouldSave = options.Save ~= false and saveKey ~= nil
+	local savedKeybind = settings[saveKey]
+	if type(savedKeybind) == "string" and Enum.KeyCode[savedKeybind] then
+		options.Keybind = Enum.KeyCode[savedKeybind]
+	end
+
 	local text = keybindContainer:object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(10, (options.Description and 5) or 0),
@@ -3082,6 +3133,9 @@ function Library:keybind(options)
 				if key.UserInputType == Enum.UserInputType.Keyboard then
 					if key.KeyCode ~= Enum.KeyCode.Escape then
 						options.Keybind = key.KeyCode
+						if shouldSave then
+							updateSettings(saveKey, key.KeyCode.Name)
+						end
 					end
 					keybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "?"
 					keybindDisplay:tween{Size = UDim2.fromOffset(keybindDisplay.TextBounds.X + 20, 20), Length = 0.05}
@@ -3104,6 +3158,9 @@ function Library:keybind(options)
 
 	function methods:Set(keycode)
 		options.Keybind = keycode
+		if shouldSave and keycode then
+			updateSettings(saveKey, keycode.Name)
+		end
 		keybindDisplay.Text = (options.Keybind and tostring(options.Keybind.Name):upper()) or "?"
 		keybindDisplay:tween{Size = UDim2.fromOffset(keybindDisplay.TextBounds.X + 20, 20), Length = 0.05}
 	end
@@ -3288,6 +3345,14 @@ function Library:slider(options)
 		Size = UDim2.new(1, -20, 0, 56)
 	}):round(7)
 
+	local saveKey = options.SaveKey or options.Name
+	local shouldSave = options.Save ~= false and saveKey ~= nil
+	local savedValue = settings[saveKey]
+	if type(savedValue) ~= "number" then
+		savedValue = options.Default
+	end
+	savedValue = math.clamp(savedValue, options.Min, options.Max)
+
 	local text = sliderContainer:object("TextLabel", {
 		BackgroundTransparency = 1,
 		Position = UDim2.fromOffset(10, 5),
@@ -3321,7 +3386,7 @@ function Library:slider(options)
 		Position = UDim2.new(1, -10, 0, 10),
 		Size = UDim2.new(0, 50,0, 20),
 		TextSize = 12,
-		Text = options.Default
+		Text = savedValue
 	}):round(5):stroke("Tertiary")
 
 	valueText.Size = UDim2.fromOffset(valueText.TextBounds.X + 20, 20)
@@ -3334,7 +3399,7 @@ function Library:slider(options)
 	}):round(100)
 
 	local sliderLine = sliderBar:object("Frame", {
-		Size = UDim2.fromScale(((options.Default - options.Min) / (options.Max - options.Min)), 1),
+		Size = UDim2.fromScale(((savedValue - options.Min) / (options.Max - options.Min)), 1),
 		Theme = {BackgroundColor3 = "Tertiary"}
 
 	}):round(100)
@@ -3385,6 +3450,9 @@ function Library:slider(options)
 					Length = 0.06,
 					Size = UDim2.fromScale(percentage, 1)
 				}
+				if shouldSave then
+					updateSettings(saveKey, value)
+				end
 				options.Callback(value)
 			end
 		end)
@@ -3394,8 +3462,17 @@ function Library:slider(options)
 	local methods = {}
 
 	function methods:Set(value)
+		value = math.clamp(value, options.Min, options.Max)
 		sliderLine:tween{Size = UDim2.fromScale(((value - options.Min) / (options.Max - options.Min)), 1)}
+		valueText.Text = value
+		valueText:tween{Size = UDim2.fromOffset(valueText.TextBounds.X + 20, 20), Length = 0.05}
+		if shouldSave then
+			updateSettings(saveKey, value)
+		end
+		task.spawn(function() options.Callback(value) end)
 	end
+
+	methods:Set(savedValue)
 
 	return methods
 end
