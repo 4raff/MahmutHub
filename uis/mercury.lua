@@ -1613,9 +1613,12 @@ function Library:dropdown(options)
 				end)
 
 				newItem.MouseButton1Click:connect(function()
-					toggle()
-					applySelection(newItem.Text)
-				end)
+    toggle()
+    -- Langsung panggil callback dengan value, bypass applySelection lookup
+    selectedText.Text = label
+    selectedText:tween{Size = UDim2.fromOffset(selectedText.TextBounds.X + 20, 20), Length = 0.05}
+    options.Callback(value)  -- langsung pakai 'value' dari closure
+end)
 			end
 		end
 	end
