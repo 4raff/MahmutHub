@@ -1443,6 +1443,10 @@ function Library:dropdown(options)
 		Callback = function(item) return end
 	}, options)
 
+	-- Ensure Items is always a table
+	if not options.Items or type(options.Items) ~= "table" then
+		options.Items = {}
+	end
 
 	local newSize = 0
 	local open = false
@@ -1521,9 +1525,9 @@ function Library:dropdown(options)
 		if shouldSave then
 			updateSettings(saveKey, textValue)
 		end
-		if not skipCallback then
+		if not skipCallback and items then
 			for _, item in next, items do
-				if item[1][1] == textValue then
+				if item and item[1] and item[1][1] == textValue then
 					options.Callback(item[1][2])
 					break
 				end
@@ -1553,9 +1557,9 @@ function Library:dropdown(options)
 		end
 	end
 
-	if savedSelection then
+	if savedSelection and items then
 		for _, item in next, items do
-			if item[1][1] == savedSelection then
+			if item and item[1] and item[1][1] == savedSelection then
 				applySelection(savedSelection)
 				break
 			end
@@ -1565,50 +1569,54 @@ function Library:dropdown(options)
 	local toggle;
 
 	for i, item in next, items do
-		local label = item[1]
-		local value = item[2]
+		if not item or not item[1] or not item[2] then
+			items[i] = nil
+		else
+			local label = item[1]
+			local value = item[2]
 
-		local newItem = itemContainer:object("TextButton", {
-			Theme = {
-				BackgroundColor3 = {"Secondary", 25},
-				TextColor3 = {"StrongText", 25}
-			},
-			Text = label,
-			TextSize = 14
-		}):round(5)
+			local newItem = itemContainer:object("TextButton", {
+				Theme = {
+					BackgroundColor3 = {"Secondary", 25},
+					TextColor3 = {"StrongText", 25}
+				},
+				Text = label,
+				TextSize = 14
+			}):round(5)
 
-		items[i] = {{label, value}, newItem} 
+			items[i] = {{label, value}, newItem} 
 
-		do
-			local hovered = false
-			local down = false
+			do
+				local hovered = false
+				local down = false
 
-			newItem.MouseEnter:connect(function()
-				hovered = true
-				newItem:tween{BackgroundColor3 = Library.CurrentTheme.Tertiary}
-			end)
+				newItem.MouseEnter:connect(function()
+					hovered = true
+					newItem:tween{BackgroundColor3 = Library.CurrentTheme.Tertiary}
+				end)
 
-			newItem.MouseLeave:connect(function()
-				hovered = false
-				if not down then
-					newItem:tween{BackgroundColor3 = self:lighten(Library.CurrentTheme.Secondary, 25)}
-				end
-			end)
+				newItem.MouseLeave:connect(function()
+					hovered = false
+					if not down then
+						newItem:tween{BackgroundColor3 = self:lighten(Library.CurrentTheme.Secondary, 25)}
+					end
+				end)
 
-			newItem.MouseButton1Down:connect(function()
-				newItem:tween{BackgroundColor3 = self:lighten(Library.CurrentTheme.Tertiary, 10)}
-			end)
+				newItem.MouseButton1Down:connect(function()
+					newItem:tween{BackgroundColor3 = self:lighten(Library.CurrentTheme.Tertiary, 10)}
+				end)
 
-			UserInputService.InputEnded:connect(function(key)
-				if key.UserInputType == Enum.UserInputType.MouseButton1 then
-					newItem:tween{BackgroundColor3 = (hovered and self:lighten(Library.CurrentTheme.Tertiary, 5)) or self:lighten(Library.CurrentTheme.Secondary, 25)}
-				end
-			end)
+				UserInputService.InputEnded:connect(function(key)
+					if key.UserInputType == Enum.UserInputType.MouseButton1 then
+						newItem:tween{BackgroundColor3 = (hovered and self:lighten(Library.CurrentTheme.Tertiary, 5)) or self:lighten(Library.CurrentTheme.Secondary, 25)}
+					end
+				end)
 
-			newItem.MouseButton1Click:connect(function()
-				toggle()
-				applySelection(newItem.Text)
-			end)
+				newItem.MouseButton1Click:connect(function()
+					toggle()
+					applySelection(newItem.Text)
+				end)
+			end
 		end
 	end
 
