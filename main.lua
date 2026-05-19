@@ -4,18 +4,9 @@ if not game:IsLoaded() then
     game.Loaded:Wait()
 end
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
-
-repeat task.wait() until LocalPlayer
-
 print("Checking game support...")
 
-if not LocalPlayer.Character then
-    LocalPlayer.CharacterAdded:Wait()
-end
-
-local gameId = game.GameId
+local UniverseID = game:GetService("HttpService"):JSONDecode(game:HttpGet("https://apis.roblox.com/universes/v1/places/"..game.PlaceId.."/universe")).universeId
 
 local supportedGames = {
     [9186719164] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/SailorPiece/production/main.lua",
@@ -23,11 +14,11 @@ local supportedGames = {
     [7633926880] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/games/BloxStrike/production/main.lua",
 }
 
-if supportedGames[gameId] then 
+if supportedGames[UniverseID] then 
     print("Game supported! Loading script...")
 
     local success, result = pcall(function()
-        return game:HttpGet(supportedGames[gameId])
+        return game:HttpGet(supportedGames[UniverseID])
     end)
 
     if success and result then
@@ -38,5 +29,5 @@ if supportedGames[gameId] then
         warn("Failed to fetch script.")
     end
 else
-    warn("Unsupported game. GameId:", gameId)
+    warn("Unsupported game. UniverseID:", UniverseID)
 end
