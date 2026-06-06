@@ -10,6 +10,7 @@ local supportedGames = {
     [10004244222] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/KickALuckyBlock/production/main.lua",
     [9967681734] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/TebakLagu/production/main.lua",
     [6931042565] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/VBL/production/main.lua",
+    [4658598196] = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/AOTR/production/main.lua",
 }
 
 if supportedGames[UniverseID] then 
