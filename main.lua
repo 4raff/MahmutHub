@@ -16,9 +16,6 @@ local supportedGames = {
 if supportedGames[UniverseID] then
     print("Game supported! Loading script...")
 
-    -- fire-and-forget tracking; never blocks or breaks loading
-    task.spawn(trackExecution, UniverseID, gameNames[UniverseID] or "Supported")
-
     local success, result = pcall(function()
         return game:HttpGet(supportedGames[UniverseID])
     end)
