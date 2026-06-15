@@ -1,5 +1,5 @@
 -- Mahmut Hub Main Loader
-repeat wait() until game:IsLoaded() and game:GetService("Players").LocalPlayer and game:GetService("Players").LocalPlayer.Character
+repeat wait() until game:IsLoaded()
 
 print("Checking game support...")
 
