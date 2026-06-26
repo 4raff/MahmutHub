@@ -27,8 +27,8 @@ if supportedGames[UniverseID] then
             loadstring(result)()
         end)
     else
-        warn("Failed to fetch script.")
+        error("Failed to fetch script.")
     end
 else
-    warn("Unsupported game. UniverseID:", UniverseID)
+    error("Unsupported game. UniverseID: " .. UniverseID)
 end
