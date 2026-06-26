@@ -15,24 +15,34 @@ do
     g.MahmutHubLoaded = true
 end
 
--- ========== LOAD UI FROM EXTERNAL ==========
+-- ========== LOAD UI FROM EXTERNAL (WITH FALLBACK) ==========
 local function createLoader()
     local ok, result = pcall(function()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/uis/loader.lua"))()
     end)
     
-    if not ok then
-        error("Mahmut Hub | Failed to load UI: " .. tostring(result))
+    -- Jika UI gagal load, return fallback (dummy loader)
+    if not ok or type(result) ~= "table" then
+        warn("Mahmut Hub | UI failed to load, running without GUI...")
+        
+        -- Dummy loader: method ada tapi tidak melakukan apa-apa
+        return {
+            update = function(self, p, msg, gName) end,
+            fadeOut = function(self, delayTime) end,
+            destroy = function(self) end
+        }
     end
     
-    if type(result) ~= "table" then
-        error("Mahmut Hub | UI did not return a table")
-    end
-    
+    -- Verify required methods
     local required = {"update", "fadeOut", "destroy"}
     for _, method in ipairs(required) do
         if type(result[method]) ~= "function" then
-            error("Mahmut Hub | UI missing method: " .. method)
+            warn("Mahmut Hub | UI missing method: " .. method .. ", running without GUI...")
+            return {
+                update = function(self, p, msg, gName) end,
+                fadeOut = function(self, delayTime) end,
+                destroy = function(self) end
+            }
         end
     end
     
