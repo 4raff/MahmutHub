@@ -309,3 +309,5 @@ local function createLoader()
         end
     }
 end
+
+return createLoader()

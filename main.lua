@@ -9,10 +9,78 @@ local Players = game:GetService("Players")
 do
     local g = (getgenv and getgenv()) or _G or {}
     if g.MahmutHubLoaded then
-        warn("Mahmut Hub | already running")
+        print("Mahmut Hub | already running")
         return
     end
     g.MahmutHubLoaded = true
+end
+
+-- ========== RCONSOLE LOADING BAR (FALLBACK) ==========
+local function createConsoleLoader()
+    -- Check if rconsole available
+    local hasConsole = rconsoleprint and rconsoleclear and rconsolehide
+    
+    if not hasConsole then
+        -- Ultimate fallback: do nothing
+        return {
+            update = function(self, p, msg, gName) end,
+            fadeOut = function(self, delayTime) end,
+            destroy = function(self) end
+        }
+    end
+    
+    -- Clear console first
+    rconsoleclear()
+    rconsolehide()
+    
+    local function drawBar(percent, status, gameName)
+        rconsoleclear()
+        
+        local barWidth = 30
+        local filled = math.floor(barWidth * percent / 100)
+        local empty = barWidth - filled
+        local bar = string.rep("=", filled) .. string.rep(" ", empty)
+        
+        local lines = {
+            "",
+            "  __  __       _   _           _   _       _     _       ",
+            " |  \\/  | __ _| | | |__   __ _| | | |_   _| |__ | | ___  ",
+            " | |\\/| |/ _` | | | '_ \\ / _` | | | | | | | '_ \\| |/ _ \\ ",
+            " | |  | | (_| | | | | | | (_| | |_| | |_| | |_) | |  __/ ",
+            " |_|  |_|\\__,_|_| |_| |_|\\__,_|\\___/ \\__,_|_.__/|_|\\___| ",
+            "",
+            "  Mahmut Hub Loader v2.0",
+            "  " .. (gameName and "Game: " .. gameName or "Checking game..."),
+            "",
+            "  [" .. bar .. "] " .. string.format("%3d", percent) .. "%",
+            "  Status: " .. status,
+            "",
+            "  " .. string.rep(".", (percent % 4) + 1),
+            ""
+        }
+        
+        for _, line in ipairs(lines) do
+            rconsoleprint(line .. "\n")
+        end
+    end
+    
+    return {
+        update = function(self, p, msg, gName)
+            drawBar(p, msg, gName)
+        end,
+        
+        fadeOut = function(self, delayTime)
+            delayTime = delayTime or 1
+            task.wait(delayTime)
+            rconsoleclear()
+            rconsoleprint("\n  Mahmut Hub | Loaded successfully!\n")
+            task.wait(0.5)
+        end,
+        
+        destroy = function(self)
+            -- rconsole tidak perlu destroy
+        end
+    }
 end
 
 -- ========== LOAD UI FROM EXTERNAL (WITH FALLBACK) ==========
@@ -21,28 +89,18 @@ local function createLoader()
         return loadstring(game:HttpGet("https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/uis/loader.lua"))()
     end)
     
-    -- Jika UI gagal load, return fallback (dummy loader)
+    -- Jika UI gagal load, pakai rconsole loader
     if not ok or type(result) ~= "table" then
-        warn("Mahmut Hub | UI failed to load, running without GUI...")
-        
-        -- Dummy loader: method ada tapi tidak melakukan apa-apa
-        return {
-            update = function(self, p, msg, gName) end,
-            fadeOut = function(self, delayTime) end,
-            destroy = function(self) end
-        }
+        print("Mahmut Hub | UI failed to load, switching to console mode...")
+        return createConsoleLoader()
     end
     
     -- Verify required methods
     local required = {"update", "fadeOut", "destroy"}
     for _, method in ipairs(required) do
         if type(result[method]) ~= "function" then
-            warn("Mahmut Hub | UI missing method: " .. method .. ", running without GUI...")
-            return {
-                update = function(self, p, msg, gName) end,
-                fadeOut = function(self, delayTime) end,
-                destroy = function(self) end
-            }
+            print("Mahmut Hub | UI missing method: " .. method .. ", switching to console mode...")
+            return createConsoleLoader()
         end
     end
     
