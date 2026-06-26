@@ -2,6 +2,17 @@ repeat
     task.wait()
 until game:IsLoaded()
 local HttpService = game:GetService("HttpService")
+
+-- prevent double execution
+do
+    local g = (getgenv and getgenv()) or _G
+    if g.MahmutHubLoaded then
+        warn("Mahmut Hub | already running in this client - skipping duplicate execution")
+        return
+    end
+    g.MahmutHubLoaded = true
+end
+
 print("Mahmut Hub | Loading...")
 print("Mahmut Hub | Checking game support...")
 local UniverseID = HttpService:JSONDecode(game:HttpGet("https://apis.roblox.com/universes/v1/places/" .. game.PlaceId ..
