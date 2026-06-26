@@ -19,7 +19,7 @@ local supportedGames = {
 local url = supportedGames[UniverseID]
 
 if not url then
-    error(("Unsupported game (UniverseID: %d)"):format(UniverseID))
+    error(("Mahmut Hub | Unsupported game (UniverseID: %d)"):format(UniverseID))
 else
     print("Mahmut Hub | Supported game detected, loading script...")
 end
@@ -27,7 +27,7 @@ end
 local ok, script = pcall(game.HttpGet, game, url)
 
 if not ok then
-    error("Failed to download game script.")
+    error("Mahmut Hub | Failed to download game script.")
 end
 
 local ok2, err = pcall(loadstring(script))
