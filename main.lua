@@ -3,29 +3,44 @@ if not game:IsLoaded() then
 end
 
 local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
 
--- prevent double execution
+-- Double execution check
 do
     local g = (getgenv and getgenv()) or _G or {}
     if g.MahmutHubLoaded then
-        warn("Mahmut Hub | already running in this client - skipping duplicate execution")
+        warn("Mahmut Hub | already running")
         return
     end
     g.MahmutHubLoaded = true
 end
 
-print("Mahmut Hub | Loading...")
-print("Mahmut Hub | Checking game support...")
-
-local success, universeData = pcall(function()
-    return game:HttpGet("https://apis.roblox.com/universes/v1/places/" .. game.PlaceId .. "/universe")
-end)
-
-if not success then
-    error("Mahmut Hub | Failed to fetch universe data")
+-- ========== LOAD UI FROM EXTERNAL ==========
+local function createLoader()
+    local ok, result = pcall(function()
+        return loadstring(game:HttpGet("https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/uis/loader.lua"))()
+    end)
+    
+    if not ok then
+        error("Mahmut Hub | Failed to load UI: " .. tostring(result))
+    end
+    
+    if type(result) ~= "table" then
+        error("Mahmut Hub | UI did not return a table")
+    end
+    
+    local required = {"update", "fadeOut", "destroy"}
+    for _, method in ipairs(required) do
+        if type(result[method]) ~= "function" then
+            error("Mahmut Hub | UI missing method: " .. method)
+        end
+    end
+    
+    return result
 end
 
-local UniverseID = HttpService:JSONDecode(universeData).universeId
+-- ========== MAIN LOADER ==========
+local loader = createLoader()
 
 local supportedGames = {
     [9186719164] = { name = "Sailor Piece", url = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/SailorPiece/production/main.lua" },
@@ -37,31 +52,54 @@ local supportedGames = {
     [4658598196] = { name = "AOT:Revolution", url = "https://raw.githubusercontent.com/4raff/MahmutHub/refs/heads/main/AOTR/production/main.lua" }
 }
 
+-- Step 1: Fetch universe
+loader:update(10, "Connecting to Roblox API...")
+local success, universeData = pcall(function()
+    return game:HttpGet("https://apis.roblox.com/universes/v1/places/" .. game.PlaceId .. "/universe")
+end)
+if not success then loader:destroy() error("Failed to fetch universe data") end
+
+-- Step 2: Parse
+loader:update(25, "Parsing game data...")
+local UniverseID = HttpService:JSONDecode(universeData).universeId
+
+-- Step 3: Check support
+loader:update(40, "Verifying game support...")
 local gameInfo = supportedGames[UniverseID]
-if not gameInfo then
-    error(("Mahmut Hub | Unsupported game (UniverseID: %d)"):format(UniverseID))
+if not gameInfo then 
+    loader:update(100, "Unsupported game!")
+    task.wait(1)
+    loader:destroy() 
+    error(("Unsupported game (UniverseID: %d)"):format(UniverseID)) 
 end
 
-print(("Mahmut Hub | Supported game detected: %s, loading script..."):format(gameInfo.name))
+loader:update(50, "Game verified", gameInfo.name)
 
+-- Step 4: Download
+loader:update(60, "Downloading script...")
 local ok, scriptSource = pcall(function()
     return game:HttpGet(gameInfo.url)
 end)
-
-if not ok or not scriptSource or scriptSource == "" then
-    error("Mahmut Hub | Failed to download game script.")
+if not ok or not scriptSource or scriptSource == "" then 
+    loader:destroy() 
+    error("Failed to download game script") 
 end
 
+-- Step 5: Execute
+loader:update(80, "Executing script...")
 local ok2, err = pcall(function()
     local func = loadstring(scriptSource)
-    if not func then
-        error("loadstring returned nil - script may be empty or malformed")
-    end
+    if not func then error("loadstring returned nil") end
+    getgenv().MahmutHubGame = gameInfo.name
+    getgenv().MahmutHubLoader = loader
     func()
 end)
 
-if not ok2 then
-    error("Mahmut Hub | Failed to execute game script: " .. tostring(err))
+if not ok2 then 
+    loader:destroy() 
+    error("Failed to execute: " .. tostring(err)) 
 end
 
-print("Mahmut Hub | Script loaded successfully!")
+-- Done
+loader:update(100, "Ready!", gameInfo.name)
+loader:fadeOut(2)
