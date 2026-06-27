@@ -3,7 +3,6 @@ if not game:IsLoaded() then
 end
 
 local HttpService = game:GetService("HttpService")
-local Players = game:GetService("Players")
 
 -- Double execution check
 do
@@ -17,34 +16,26 @@ end
 
 -- ========== PRINT CONSOLE LOADER (FALLBACK) ==========
 local function createPrintLoader()
-    local lastLen = 0
-    
-    local function clearLine()
-        -- Roblox tidak support backspace, jadi kita print line kosong
-        -- Untuk "clear" visual, kita tidak bisa benar-benar hapus
-    end
-    
-    local function draw(percent, status, gameName)
-        local barWidth = 20
-        local filled = math.floor(barWidth * percent / 100)
-        local bar = string.rep("=", filled) .. string.rep("-", barWidth - filled)
-        
-        print(string.format("[Mahmut Hub] [%s] %3d%% | %s", bar, percent, status))
-    end
-    
+    local lastPercent = 0
+    local lastStatus = ""
+    local lastName = ""
+
     return {
         update = function(self, p, msg, gName)
-            draw(p, msg, gName)
+            lastPercent = p
+            lastStatus = msg
+            if gName then lastName = gName end
+            -- tidak print, hanya simpan state
         end,
-        
+
         fadeOut = function(self, delayTime)
-            delayTime = delayTime or 1
-            task.wait(delayTime)
-            print("[Mahmut Hub] Done!")
+            task.wait(delayTime or 1)
+            local bar = string.rep("█", 20) .. " 100%"
+            print(string.format("◆ [%s] | %s → Done!", bar, lastName))
         end,
-        
+
         destroy = function(self)
-            -- nothing to destroy
+            print("✘ Mahmut Hub stopped at " .. lastPercent .. "%")
         end
     }
 end

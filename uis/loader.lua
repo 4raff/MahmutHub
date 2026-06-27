@@ -1,5 +1,8 @@
 -- ========== MODERN BLACK & WHITE CARTOON LOADER ==========
-local function createLoader()
+local M = {}
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+M.CreateUILoader = function()
     local player = Players.LocalPlayer
     
     local gui = Instance.new("ScreenGui")
@@ -77,7 +80,7 @@ local function createLoader()
     icon.Parent = main
     
     -- Bounce animation
-    spawn(function()
+    task.spawn(function()
         while icon and icon.Parent do
             TweenService:Create(icon, TweenInfo.new(0.4, Enum.EasingStyle.Bounce, Enum.EasingDirection.Out), 
                 {Position = UDim2.new(0, 30, 0, 22)}):Play()
@@ -159,7 +162,7 @@ local function createLoader()
     stripe.Parent = barFill
     
     -- Stripe animation
-    spawn(function()
+    task.spawn(function()
         while stripe and stripe.Parent do
             TweenService:Create(stripe, TweenInfo.new(0.8, Enum.EasingStyle.Linear), 
                 {Position = UDim2.new(1, -30, 0, 5)}):Play()
@@ -213,7 +216,7 @@ local function createLoader()
         dotCorner.Parent = dot
         
         -- Bounce animation
-        spawn(function()
+        task.spawn(function()
             while dot and dot.Parent do
                 task.wait(0.2 * i)
                 TweenService:Create(dot, TweenInfo.new(0.3, Enum.EasingStyle.Bounce), 
@@ -310,4 +313,4 @@ local function createLoader()
     }
 end
 
-return createLoader()
+return M.CreateUILoader()
