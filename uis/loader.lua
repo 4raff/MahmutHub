@@ -10,6 +10,7 @@ M.CreateUILoader = function()
     gui.ResetOnSpawn = false
     gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     gui.IgnoreGuiInset = true
+    gui.DisplayOrder = 9999
     gui.Parent = player:WaitForChild("PlayerGui")
     
     -- BACKGROUND BLUR

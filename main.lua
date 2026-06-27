@@ -8,7 +8,7 @@ local HttpService = game:GetService("HttpService")
 do
     local g = (getgenv and getgenv()) or _G or {}
     if g.MahmutHubLoaded then
-        print("Mahmut Hub | already running")
+        error("Mahmut Hub | already running")
         return
     end
     g.MahmutHubLoaded = true
