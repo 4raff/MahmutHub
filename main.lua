@@ -8,7 +8,7 @@ local HttpService = game:GetService("HttpService")
 do
     local g = (getgenv and getgenv()) or _G or {}
     if g.MahmutHubLoaded then
-        error("Mahmut Hub | already running")
+        warn("Mahmut Hub | already running")
         return
     end
     g.MahmutHubLoaded = true
@@ -82,7 +82,7 @@ loader:update(10, "Connecting to Roblox API...")
 local success, universeData = pcall(function()
     return game:HttpGet("https://apis.roblox.com/universes/v1/places/" .. game.PlaceId .. "/universe")
 end)
-if not success then loader:destroy() error("Failed to fetch universe data") end
+if not success then loader:destroy() warn("Failed to fetch universe data") end
 
 -- Step 2: Parse
 loader:update(25, "Parsing game data...")
@@ -95,7 +95,7 @@ if not gameInfo then
     loader:update(100, "Unsupported game!")
     task.wait(1)
     loader:destroy() 
-    error(("Unsupported game (UniverseID: %d)"):format(UniverseID)) 
+    warn(("Unsupported game (UniverseID: %d)"):format(UniverseID)) 
 end
 
 loader:update(50, "Game verified", gameInfo.name)
@@ -133,14 +133,14 @@ local scriptSource = fetchWithRetry(gameInfo.url, 5, 1.5)
 
 if not scriptSource then 
     loader:destroy() 
-    error("Failed to download game script after retries") 
+    warn("Failed to download game script after retries") 
 end
 
 -- Step 5: Execute
 loader:update(80, "Executing script...")
 local ok2, err = pcall(function()
     local func = loadstring(scriptSource)
-    if not func then error("loadstring returned nil") end
+    if not func then warn("loadstring returned nil") end
     getgenv().MahmutHubGame = gameInfo.name
     getgenv().MahmutHubLoader = loader
     func()
@@ -148,7 +148,7 @@ end)
 
 if not ok2 then 
     loader:destroy() 
-    error("Failed to execute: " .. tostring(err)) 
+    warn("Failed to execute: " .. tostring(err)) 
 end
 
 -- Done
