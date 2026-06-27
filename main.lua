@@ -100,14 +100,40 @@ end
 
 loader:update(50, "Game verified", gameInfo.name)
 
--- Step 4: Download
+-- Step 4: Download with retry
 loader:update(60, "Downloading script...")
-local ok, scriptSource = pcall(function()
-    return game:HttpGet(gameInfo.url)
-end)
-if not ok or not scriptSource or scriptSource == "" then 
+
+local function fetchWithRetry(url, maxRetries, delay)
+    maxRetries = maxRetries or 3
+    delay = delay or 1
+    
+    for attempt = 1, maxRetries do
+        local ok, result = pcall(function()
+            return game:HttpGet(url)
+        end)
+        
+        -- Validasi: harus string, tidak kosong, dan bukan HTML error page
+        if ok and type(result) == "string" and result ~= "" then
+            -- Cek kalau malah dapet HTML error page (GitHub 404, etc)
+            if not result:match("^%s*<") then  -- kalau bukan HTML
+                return result
+            end
+        end
+        
+        if attempt < maxRetries then
+            loader:update(60, "Download failed, retrying... (" .. attempt .. "/" .. maxRetries .. ")")
+            task.wait(delay)
+        end
+    end
+    
+    return nil
+end
+
+local scriptSource = fetchWithRetry(gameInfo.url, 5, 1.5)
+
+if not scriptSource then 
     loader:destroy() 
-    error("Failed to download game script") 
+    error("Failed to download game script after retries") 
 end
 
 -- Step 5: Execute
