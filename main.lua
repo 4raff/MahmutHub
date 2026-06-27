@@ -104,25 +104,20 @@ loader:update(50, "Game verified", gameInfo.name)
 loader:update(60, "Downloading script...")
 
 local function fetchWithRetry(url, maxRetries, delay)
-    maxRetries = maxRetries or 3
-    delay = delay or 1
+    maxRetries = maxRetries or 5
+    delay = delay or 2
     
     for attempt = 1, maxRetries do
         local ok, result = pcall(function()
             return game:HttpGet(url)
         end)
         
-        -- Validasi: harus string, tidak kosong, dan bukan HTML error page
         if ok and type(result) == "string" and result ~= "" then
-            -- Cek kalau malah dapet HTML error page (GitHub 404, etc)
-            if not result:match("^%s*<") then  -- kalau bukan HTML
-                return result
-            end
+            return result  -- langsung return, tanpa cek HTML
         end
         
         if attempt < maxRetries then
-            loader:update(60, "Download failed, retrying... (" .. attempt .. "/" .. maxRetries .. ")")
-            task.wait(delay)
+            task.wait(delay * attempt)
         end
     end
     
